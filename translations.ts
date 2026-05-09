@@ -1,0 +1,37 @@
+
+export const translations = {
+  fr: {
+    heroTitlePrefix: "La meilleure route vers votre ",
+    heroTitleHighlight: "Permis de Conduire",
+    heroTitleSuffix: ".",
+    heroSubtitle: "Apprenez à conduire avec les meilleurs moniteurs de Bab Azzouar. Une formation moderne, sécurisée et orientée succès.",
+    ctaRegister: "Commencer l'Aventure",
+    downloadCode: "Télécharger Code Algérie (PDF)",
+    navHome: "Accueil",
+    navFormations: "Permis",
+    navTariffs: "Tarifs",
+    navContact: "Contact",
+    navAdmin: "Espace Pro",
+    statsStudents: "Élèves Certifiés",
+    statsSuccess: "Taux de Réussite",
+    statsExp: "Expertise Locale",
+    statsVehicles: "Parc Automobile",
+  },
+  ar: {
+    heroTitlePrefix: "طريقكم الأفضل نحو ",
+    heroTitleHighlight: "رخصة السياقة",
+    heroTitleSuffix: ".",
+    heroSubtitle: "تعلم السياقة مع أفضل المدربين في باب الزوار. تكوين عصري، آمن وناجح.",
+    ctaRegister: "ابدأ الآن",
+    downloadCode: "تحميل قانون المرور الجزائري (PDF)",
+    navHome: "الرئيسية",
+    navFormations: "التراخيص",
+    navTariffs: "الأسعار",
+    navContact: "اتصل بنا",
+    navAdmin: "فضاء الإدارة",
+    statsStudents: "طالب متخرج",
+    statsSuccess: "نسبة النجاح",
+    statsExp: "خبرة محلية",
+    statsVehicles: "أسطول المركبات",
+  }
+};
