@@ -109,12 +109,11 @@ const Planning = () => {
     const diffToSaturday = currentDay === 6 ? 0 : -(currentDay + 1);
     const startOfPeriod = new Date(today);
     startOfPeriod.setDate(today.getDate() + diffToSaturday + currentWeekOffset * 7);
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 6; i++) {
       const date = new Date(startOfPeriod);
       date.setDate(startOfPeriod.getDate() + i);
       const nativeDayName = date.toLocaleDateString('fr-FR', { weekday: 'long' });
       const capitalizedDayName = nativeDayName.charAt(0).toUpperCase() + nativeDayName.slice(1);
-      if (capitalizedDayName === 'Vendredi') continue;
       const fullDateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
       dates.push({
         name: capitalizedDayName,
@@ -133,7 +132,7 @@ const Planning = () => {
   const currentWeekLabel = useMemo(() => {
     if (!weekDates.length) return '';
     const start = new Date(weekDates[0].fullDate);
-    const end = new Date(weekDates[6].fullDate);
+    const end = new Date(weekDates[weekDates.length - 1].fullDate);
     return `${start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })} – ${end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}`;
   }, [weekDates]);
 
@@ -349,20 +348,21 @@ const Planning = () => {
                           <span className="text-[13px] font-black uppercase tracking-widest text-slate-500 rotate-45">Fermé</span>
                         </div>
                       ) : slotLessons.length > 0 ? (
-                        <div className="absolute inset-1.5 flex flex-col gap-1 overflow-y-auto no-scrollbar">
-                          {slotLessons.map((lesson) => {
+                        <div className="absolute inset-1.5 flex flex-col gap-0.5 overflow-y-auto no-scrollbar">
+                          <div className="flex items-center gap-1 mb-1">
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">{slotLessons.length} étudiant{slotLessons.length > 1 ? 's' : ''}</span>
+                          </div>
+                          {slotLessons.map((lesson, idx) => {
                             const lessonColor = getTypeColor(lesson.type);
                             return (
                               <button
                                 key={lesson.id}
                                 type="button"
                                 onClick={() => setSelectedLesson(lesson)}
-                                className="w-full rounded-xl px-1.5 py-1 text-left shadow-md hover:shadow-lg transition-all flex items-center gap-1"
-                                style={{ backgroundColor: lessonColor.bg, border: `2px solid ${lessonColor.border}`, color: lessonColor.icon }}
+                                className="w-full rounded-lg px-1.5 py-0.5 text-left shadow-md hover:shadow-lg transition-all flex items-center gap-1"
+                                style={{ backgroundColor: lessonColor.bg, border: `1.5px solid ${lessonColor.border}`, color: lessonColor.icon }}
                               >
-                                <div className="p-0.5 rounded shrink-0 bg-black/10" style={{ color: lessonColor.icon }}>
-                                  {getTypeIcon(lesson.type, 9)}
-                                </div>
+                                <span className="text-[7px] font-black bg-black/20 px-1.5 rounded shrink-0">{idx + 1}</span>
                                 <span className="text-[8px] font-black uppercase tracking-widest flex-1 min-w-0 truncate">{getStudentName(lesson.studentId)}</span>
                               </button>
                             );
