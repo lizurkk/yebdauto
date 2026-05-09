@@ -73,7 +73,7 @@ const Planning = () => {
   const closedDays = store.planning.closedDays;
 
   const blockedTimeSlots: Record<string, string[]> = {
-    Mardi: ['07:45', '08:30', '09:15', '10:00', '10:45', '11:30', '12:15', '13:00'],
+    Mardi: ['13:45', '14:30', '15:15', '16:00', '16:45', '17:30', '18:15', '19:00'],
     Jeudi: ['13:45', '14:30', '15:15', '16:00', '16:45', '17:30', '18:15', '19:00']
   };
 
@@ -336,11 +336,12 @@ const Planning = () => {
                   const firstLesson = slotLessons[0];
                   const colors = firstLesson ? getTypeColor(firstLesson.type) : null;
                   const isUnavailable = isClosed || isSlotClosed(date.name, time);
+                  const halfDayClosedBg = isSlotClosed(date.name, time) && !isClosed ? '#9c7a1c' : (isUnavailable ? '#1f2937' : rowBg);
                   return (
                     <div
                       key={time}
                       className={`${isFullScreen ? 'flex-1' : 'h-20'} border-b border-slate-700 relative group`}
-                      style={{ backgroundColor: isUnavailable ? '#1f2937' : rowBg }}
+                      style={{ backgroundColor: halfDayClosedBg }}
                     >
                       {isUnavailable ? (
                         <div className="absolute inset-0 flex items-center justify-center">
