@@ -114,6 +114,7 @@ const Planning = () => {
       date.setDate(startOfPeriod.getDate() + i);
       const nativeDayName = date.toLocaleDateString('fr-FR', { weekday: 'long' });
       const capitalizedDayName = nativeDayName.charAt(0).toUpperCase() + nativeDayName.slice(1);
+      if (capitalizedDayName === 'Vendredi') continue;
       const fullDateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
       dates.push({
         name: capitalizedDayName,
@@ -291,7 +292,7 @@ const Planning = () => {
 
       {/* Grid */}
       <div className={`flex-grow ${isFullScreen ? 'overflow-hidden' : 'overflow-auto'} no-scrollbar bg-slate-950 ${isFullScreen ? '' : 'rounded-[45px] border border-slate-800 shadow-sm'}`}>
-        <div className={`grid ${isFullScreen ? 'h-full w-full' : 'min-w-[1000px]'} grid-cols-[90px_repeat(7,1fr)]`} style={{ gridTemplateRows: 'auto 1fr' }}>
+        <div className={`grid ${isFullScreen ? 'h-full w-full' : 'min-w-[900px]'} grid-cols-[90px_repeat(6,1fr)]`} style={{ gridTemplateRows: 'auto 1fr' }}>
 
           <div className="sticky top-0 left-0 z-50 p-3 border-r border-b border-slate-700 flex items-center justify-center bg-slate-900">
             <Clock size={18} className="text-brand opacity-50" />
@@ -347,45 +348,39 @@ const Planning = () => {
                         <div className="absolute inset-0 flex items-center justify-center">
                           <span className="text-[13px] font-black uppercase tracking-widest text-slate-500 rotate-45">Fermé</span>
                         </div>
-                      ) : (
-                        <>
-                          {slotLessons.length > 0 && (
-                            <div className="absolute inset-1.5 flex flex-col gap-1 overflow-hidden">
-                              {slotLessons.slice(0, 2).map((lesson) => {
-                                const lessonColor = getTypeColor(lesson.type);
-                                return (
-                                  <button
-                                    key={lesson.id}
-                                    type="button"
-                                    onClick={() => setSelectedLesson(lesson)}
-                                    className="w-full rounded-2xl px-2 py-1 text-left flex items-center gap-2 shadow-sm"
-                                    style={{ backgroundColor: lessonColor.bg, border: `1px solid ${lessonColor.border}`, color: lessonColor.icon }}
-                                  >
-                                    <span className="text-[10px] font-black uppercase tracking-widest">{lesson.type}</span>
-                                    <span className="text-[10px] truncate">{getStudentName(lesson.studentId)}</span>
-                                  </button>
-                                );
-                              })}
-                              {slotLessons.length > 2 && (
-                                <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">
-                                  +{slotLessons.length - 2} autres
+                      ) : slotLessons.length > 0 ? (
+                        <div className="absolute inset-1.5 flex flex-col gap-1 overflow-y-auto no-scrollbar">
+                          {slotLessons.map((lesson) => {
+                            const lessonColor = getTypeColor(lesson.type);
+                            return (
+                              <button
+                                key={lesson.id}
+                                type="button"
+                                onClick={() => setSelectedLesson(lesson)}
+                                className="w-full rounded-xl px-1.5 py-1 text-left shadow-md hover:shadow-lg transition-all flex items-center gap-1"
+                                style={{ backgroundColor: lessonColor.bg, border: `2px solid ${lessonColor.border}`, color: lessonColor.icon }}
+                              >
+                                <div className="p-0.5 rounded shrink-0 bg-black/10" style={{ color: lessonColor.icon }}>
+                                  {getTypeIcon(lesson.type, 9)}
                                 </div>
-                              )}
-                            </div>
-                          )}
-                          <button
-                            onClick={() => {
-                              setFormLesson({ ...formLesson, day: date.fullDate, time, weekOffset: currentWeekOffset });
-                              setIsNewStudent(false);
-                              setStudentSearch('');
-                              setShowAddLesson(true);
-                            }}
-                            className="absolute inset-1.5 rounded-xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all border-2 border-dashed border-green-400/40 bg-green-500/10 hover:bg-green-500/20 hover:border-green-400"
-                          >
-                            <Plus size={isFullScreen ? 14 : 18} className="text-green-400" />
-                          </button>
-                        </>
-                      )}
+                                <span className="text-[8px] font-black uppercase tracking-widest flex-1 min-w-0 truncate">{getStudentName(lesson.studentId)}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setFormLesson({ ...formLesson, day: date.fullDate, time, weekOffset: currentWeekOffset });
+                            setIsNewStudent(false);
+                            setStudentSearch('');
+                            setShowAddLesson(true);
+                          }}
+                          className="absolute inset-1.5 rounded-xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all border-2 border-dashed border-green-400/40 bg-green-500/10 hover:bg-green-500/20 hover:border-green-400"
+                        >
+                          <Plus size={isFullScreen ? 14 : 18} className="text-green-400" />
+                        </button>
+                      )
                     </div>
                   );
                 })}
