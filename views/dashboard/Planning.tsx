@@ -72,6 +72,11 @@ const Planning = () => {
   const rowColors = store.planning.rowColors || [];
   const closedDays = store.planning.closedDays;
 
+  const blockedTimeSlots: Record<string, string[]> = {
+    Mardi: ['07:45', '08:30', '09:15', '10:00', '10:45', '11:30', '12:15', '13:00'],
+    Jeudi: ['13:45', '14:30', '15:15', '16:00', '16:45', '17:30', '18:15', '19:00']
+  };
+
   useEffect(() => {
     localStorage.setItem('yebda_lessons', JSON.stringify(lessons));
   }, [lessons]);
@@ -121,6 +126,9 @@ const Planning = () => {
     return dates;
   }, [currentWeekOffset]);
 
+  const getDayNameFromDate = (dateStr: string) => weekDates.find(d => d.fullDate === dateStr)?.name || '';
+  const isSlotClosed = (dayName: string, time: string) => closedDays.includes(dayName) || (blockedTimeSlots[dayName]?.includes(time) ?? false);
+
   const currentWeekLabel = useMemo(() => {
     if (!weekDates.length) return '';
     const start = new Date(weekDates[0].fullDate);
@@ -169,6 +177,13 @@ const Planning = () => {
 
     if (!studentId || !formLesson.instructorId || !formLesson.day) return;
 
+    const selectedDayName = getDayNameFromDate(formLesson.day);
+    if (isSlotClosed(selectedDayName, formLesson.time || '')) {
+      setNotification({ message: 'Ce créneau est fermé, choisissez une autre heure.', type: 'error' });
+      setTimeout(() => setNotification(null), 3000);
+      return;
+    }
+
     const newLesson: Lesson = {
       id: Date.now().toString(),
       studentId: studentId!,
@@ -189,6 +204,14 @@ const Planning = () => {
   const handleEditLesson = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingLesson) return;
+
+    const selectedDayName = getDayNameFromDate(editingLesson.day);
+    if (isSlotClosed(selectedDayName, editingLesson.time || '')) {
+      setNotification({ message: 'Ce créneau est fermé, choisissez une autre heure.', type: 'error' });
+      setTimeout(() => setNotification(null), 3000);
+      return;
+    }
+
     setLessons(lessons.map(l => l.id === editingLesson.id ? editingLesson : l));
     setEditingLesson(null);
     setSelectedLesson(null);
@@ -309,58 +332,58 @@ const Planning = () => {
               <div key={date.fullDate} className={`border-r border-slate-700 last:border-r-0 ${isFullScreen ? 'flex flex-col' : ''}`}>
                 {timeSlots.map((time: string, idx: number) => {
                   const rowBg = rowColors[idx] || (idx % 2 === 0 ? '#2a3a4a' : '#1f2937');
-                  const lesson = lessons.find(l => l.day === date.fullDate && l.time === time);
-                  const colors = lesson ? getTypeColor(lesson.type) : null;
+                  const slotLessons = lessons.filter(l => l.day === date.fullDate && l.time === time);
+                  const firstLesson = slotLessons[0];
+                  const colors = firstLesson ? getTypeColor(firstLesson.type) : null;
+                  const isUnavailable = isClosed || isSlotClosed(date.name, time);
                   return (
                     <div
                       key={time}
                       className={`${isFullScreen ? 'flex-1' : 'h-20'} border-b border-slate-700 relative group`}
-                      style={{ backgroundColor: isClosed ? '#1f2937' : rowBg }}
+                      style={{ backgroundColor: isUnavailable ? '#1f2937' : rowBg }}
                     >
-                      {isClosed ? (
+                      {isUnavailable ? (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <span className="text-[13px] font-black uppercase tracking-widest text-slate-500 rotate-45">Fermé</span>
                         </div>
-                      ) : lesson && colors ? (
-                        <div
-                          className="absolute inset-1.5 rounded-xl shadow-sm flex flex-row items-center gap-1.5 px-2"
-                          style={{ backgroundColor: colors.bg, border: `1.5px solid ${colors.border}` }}
-                        >
-                          <div className="p-1 rounded-lg bg-black/10 shrink-0" style={{ color: colors.icon }}>
-                            {getTypeIcon(lesson.type, 12)}
-                          </div>
-                          <p
-                            className="text-[10px] font-black leading-tight flex-1 min-w-0"
-                            style={{
-                              color: colors.icon,
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden'
-                            }}
-                          >
-                            {getStudentName(lesson.studentId)}
-                          </p>
-                          <button
-                            onClick={() => setSelectedLesson(lesson)}
-                            className="w-4 h-4 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-all shrink-0"
-                            style={{ color: colors.icon }}
-                          >
-                            <Info size={9} />
-                          </button>
-                        </div>
                       ) : (
-                        <button
-                          onClick={() => {
-                            setFormLesson({ ...formLesson, day: date.fullDate, time, weekOffset: currentWeekOffset });
-                            setIsNewStudent(false);
-                            setStudentSearch('');
-                            setShowAddLesson(true);
-                          }}
-                          className="absolute inset-1.5 rounded-xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all border-2 border-dashed border-green-400/40 bg-green-500/10 hover:bg-green-500/20 hover:border-green-400"
-                        >
-                          <Plus size={isFullScreen ? 14 : 18} className="text-green-400" />
-                        </button>
+                        <>
+                          {slotLessons.length > 0 && (
+                            <div className="absolute inset-1.5 flex flex-col gap-1 overflow-hidden">
+                              {slotLessons.slice(0, 2).map((lesson) => {
+                                const lessonColor = getTypeColor(lesson.type);
+                                return (
+                                  <button
+                                    key={lesson.id}
+                                    type="button"
+                                    onClick={() => setSelectedLesson(lesson)}
+                                    className="w-full rounded-2xl px-2 py-1 text-left flex items-center gap-2 shadow-sm"
+                                    style={{ backgroundColor: lessonColor.bg, border: `1px solid ${lessonColor.border}`, color: lessonColor.icon }}
+                                  >
+                                    <span className="text-[10px] font-black uppercase tracking-widest">{lesson.type}</span>
+                                    <span className="text-[10px] truncate">{getStudentName(lesson.studentId)}</span>
+                                  </button>
+                                );
+                              })}
+                              {slotLessons.length > 2 && (
+                                <div className="text-[10px] font-black uppercase tracking-widest text-slate-300">
+                                  +{slotLessons.length - 2} autres
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          <button
+                            onClick={() => {
+                              setFormLesson({ ...formLesson, day: date.fullDate, time, weekOffset: currentWeekOffset });
+                              setIsNewStudent(false);
+                              setStudentSearch('');
+                              setShowAddLesson(true);
+                            }}
+                            className="absolute inset-1.5 rounded-xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-all border-2 border-dashed border-green-400/40 bg-green-500/10 hover:bg-green-500/20 hover:border-green-400"
+                          >
+                            <Plus size={isFullScreen ? 14 : 18} className="text-green-400" />
+                          </button>
+                        </>
                       )}
                     </div>
                   );
@@ -496,7 +519,15 @@ const Planning = () => {
                   <label className="text-[10px] font-black text-green-400 uppercase tracking-widest ml-2">Heure</label>
                   <select value={editingLesson.time} onChange={e => setEditingLesson({ ...editingLesson, time: e.target.value })}
                     className="w-full bg-slate-800 border border-slate-600 rounded-2xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-green-500">
-                    {timeSlots.map((t: string) => <option key={t} value={t}>{t}</option>)}
+                    {timeSlots.map((t: string) => {
+                      const editDayName = getDayNameFromDate(editingLesson.day || '');
+                      const blocked = isSlotClosed(editDayName, t);
+                      return (
+                        <option key={t} value={t} disabled={blocked}>
+                          {t}{blocked ? ' — Fermé' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               </div>
@@ -640,7 +671,15 @@ const Planning = () => {
                   <label className="text-[10px] font-black text-green-400 uppercase tracking-widest ml-2">Heure</label>
                   <select value={formLesson.time} onChange={e => setFormLesson({ ...formLesson, time: e.target.value })}
                     className="w-full bg-slate-800 border border-slate-600 rounded-2xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-green-500">
-                    {timeSlots.map((t: string) => <option key={t} value={t}>{t}</option>)}
+                  {timeSlots.map((t: string) => {
+                    const dayName = getDayNameFromDate(formLesson.day || '');
+                    const blocked = isSlotClosed(dayName, t);
+                    return (
+                      <option key={t} value={t} disabled={blocked}>
+                        {t}{blocked ? ' — Fermé' : ''}
+                      </option>
+                    );
+                  })}
                   </select>
                 </div>
               </div>
